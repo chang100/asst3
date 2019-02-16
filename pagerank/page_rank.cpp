@@ -4,6 +4,9 @@
 #include <cmath>
 #include <omp.h>
 #include <utility>
+#include <vector>
+#include <iostream>
+#include <algorithm>
 
 #include "../common/CycleTimer.h"
 #include "../common/graph.h"
@@ -18,18 +21,67 @@
 //
 void pageRank(Graph g, double* solution, double damping, double convergence)
 {
-
-
-  // initialize vertex weights to uniform probability. Double
-  // precision scores are used to avoid underflow for large graphs
-
   int numNodes = num_nodes(g);
   double equal_prob = 1.0 / numNodes;
-  for (int i = 0; i < numNodes; ++i) {
-    solution[i] = equal_prob;
+  double* score_old = new double[numNodes];
+
+  std::vector<Vertex> sinkList;
+  std::vector<Vertex> localSinkList;
+
+  // Preprocess and find all nodes with no outgoing num_edges
+  #pragma omp parallel shared(sinkList)
+  {
+    std::vector<Vertex> localSinkList;
+    #pragma omp for
+    for (int vi = 0; vi < numNodes; vi++) {
+      //solution[vi] = equal_prob;
+      score_old[vi] = equal_prob;
+
+      if (outgoing_size(g, vi) == 0)
+        localSinkList.push_back(vi);
+    }
+    #pragma omp critical
+    {
+      sinkList.insert(sinkList.end(), localSinkList.begin(), localSinkList.end());
+    }
   }
-  
-  
+  std::sort(sinkList.begin(), sinkList.end());
+
+  while (true) {
+    double sinkScore = 0.0;
+    #pragma omp parallel for reduction (+:sinkScore)
+    for (int i = 0; i < sinkList.size(); i++) {
+      sinkScore = sinkScore + score_old[sinkList[i]] / numNodes;
+    }
+    sinkScore *= damping;
+
+    #pragma omp parallel for
+    for (Vertex vi = 0; vi < numNodes; vi++) {
+      double sum = 0;
+      for (const Vertex* v = incoming_begin(g, vi);
+                    v != incoming_end(g, vi); v++) {
+        sum += score_old[*v] / outgoing_size(g, *v);
+      }
+
+      solution[vi] = sinkScore + (damping * sum) + (1.0 - damping) / numNodes;
+    }
+
+    double sum = 0;
+    #pragma omp parallel for reduction (+:sum)
+    for (int vi = 0; vi < numNodes; vi++) {
+      sum = sum + fabs(solution[vi] - score_old[vi]);
+    }
+
+    if (sum < convergence) {
+      break;
+    }
+
+    #pragma omp parallel for
+    for (int vi = 0; vi < numNodes; vi++) {
+      score_old[vi] = solution[vi];
+    }
+  }
+
   /*
      CS149 students: Implement the page rank algorithm here.  You
      are expected to parallelize the algorithm using openMP.  Your

@@ -49,11 +49,11 @@ double run_on_graph(graph* g, int num_threads, int num_runs, std::string graph_n
 
     double* sol_stu = new double[g->num_nodes];
     double* sol_ref = new double[g->num_nodes];
-        
+
     omp_set_num_threads(num_threads);
 
     double start, time;
-    
+
     //Run student implementation
     double stu_time = std::numeric_limits<int>::max();
     for (int r = 0; r < num_runs; r++) {
@@ -74,12 +74,12 @@ double run_on_graph(graph* g, int num_threads, int num_runs, std::string graph_n
     }
 
     bool correct = compareApprox(g, sol_ref, sol_stu);
-    
+
     delete(sol_stu);
     delete(sol_ref);
 
     if (!correct) {
-        std::cout << "Page rank incorrect" << std::endl; 
+        std::cout << "Page rank incorrect" << std::endl;
     } else {
         std::cout << "ref_time: " <<  ref_time << "s" << std::endl;
         std::cout << "stu_time: " <<  stu_time << "s" << std::endl;
@@ -111,7 +111,7 @@ void print_separator_line() {
 }
 
 void print_scores(std::vector<std::string> grade_graphs, std::vector<double> scores) {
-    
+
     std::cout.precision(5);
     std::cout.setf(std::ios::fixed, std:: ios::floatfield);
     std::cout<<std::endl<<std::endl;
@@ -182,7 +182,7 @@ int main(int argc, char** argv) {
     }
 
     graph_dir = argv[optind];
-  
+
     printf("Max system threads = %d\n", omp_get_max_threads());
     printf("Running with %d threads\n", num_threads);
 
