@@ -147,7 +147,7 @@ void convertToBinary(bool* frontier,
 void bfs_hybrid(Graph graph, solution* sol)
 {
   const int numNodes = num_nodes(graph);
-  const int THRESHOLD = 1000;//(int) 0.5 * numNodes;
+  const int THRESHOLD = 10000;
   memset(sol->distances, NOT_VISITED_MARKER, sizeof(int) * numNodes);
 
   bool* frontier = new bool[numNodes];
