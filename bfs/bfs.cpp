@@ -172,6 +172,7 @@ void bfs_hybrid(Graph graph, solution* sol)
     else {
       if (!binaryRepresentation) {
         convertToBinary(frontier, sol->distances, curDistance, numNodes);
+	binaryRepresentation = true;
       }
       bottom_up_step(graph,
                      sol->distances,
