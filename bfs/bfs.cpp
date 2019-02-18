@@ -138,7 +138,7 @@ void convertToBinary(bool* frontier,
   memset(frontier, false, numNodes);
   #pragma omp parallel for
   for (int i = 0; i < numNodes; i++) {
-    if (distances[i] == curDistance - 1) {
+    if (distances[i] == curDistance) {
       frontier[i] = true;
     }
   }
@@ -147,7 +147,7 @@ void convertToBinary(bool* frontier,
 void bfs_hybrid(Graph graph, solution* sol)
 {
   const int numNodes = num_nodes(graph);
-  const int THRESHOLD = (int) 1.0 * numNodes;
+  const int THRESHOLD = 1000;//(int) 0.5 * numNodes;
   memset(sol->distances, NOT_VISITED_MARKER, sizeof(int) * numNodes);
 
   bool* frontier = new bool[numNodes];
